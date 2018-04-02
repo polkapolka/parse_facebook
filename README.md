@@ -4,6 +4,16 @@ In the news right now is a lot of head scratching about facebook data. I became 
 
 I am sure this isn't even an original idea and someone else has done it and done it better than me. Oh well, please send me the link to the superior project and I will chalk this project up to experience.
 
+## Setup and Requirements
+
+Currently running Python 2.7. Probably not compatible with Python 3.3, I haven't tried it.
+
+* xml.etree.ElementTree, re, string, os, datetime
+	* Default modules in python
+* pandas
+	* [Installation Instructions here](https://pandas.pydata.org/pandas-docs/stable/install.html)
+
+
 ## Get Your Facebook Data
 Sure, there is the api, and that is great if you are building a facebook app or a bot or something.  But if you are just stand alone asking "What about me?" the link to get your facebook data is here.
 
@@ -15,9 +25,14 @@ Sure, there is the api, and that is great if you are building a facebook app or 
 3. Navigate into the location "facebook - {Name}/html"
 4. Run the command `python parse_facebook.py`
 
-The output should be a bunch of csv files with the same names as the htm files in htm.  
+The output should be a bunch of csv files with the same names as the htm files in the html folder.  
 
 ## Next Steps
 I want to put out some plots that will show what I have done on facebook. Maybe even some NLTK on my messages or something fancy.
+
+### Research Questions
+* Have I ever quit facebook?
+* Has my activity changed over time?
+* suggest more questions
 
 
