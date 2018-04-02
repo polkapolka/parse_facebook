@@ -9,23 +9,9 @@ import calendar
 import pandas as pd
 from datetime import date, datetime
 
-drop = ['contact_info.htm','ads.htm', 'apps.htm', 'contact_info.htm',   'photos.htm', 'pokes.htm', 'security.htm', 'timeline.htm', 'videos.htm']
+drop = ['contact_info.htm',    'photos.htm', 'pokes.htm', 'security.htm', 'timeline.htm', 'videos.htm']
 r = re.compile(".*htm")
 files = [f for f in filter(r.match, os.listdir(".")) if f not in drop]
-
-
-
-#		 # store it in a movie object
-#		 movie_dict = dict(zip(headers, [title,
-#								 dtg,
-#								 actual_dtg,
-#								 budget,
-#								 genre,
-#								 release_date,
-#								 runtime,
-#								 rating]))
-#		 movie_data.append(movie_dict)
-
 
 
 
@@ -188,6 +174,10 @@ def clean_data(li, file, head):
 		return clean_friends(li[1], head)
 	if file=='messages.htm':
 		return clean_messages(li[1], head)
+    if file=='ads.htm':
+        return clean_ads(li[1], head)
+    if file=='apps.htm':
+        return clean_apps(li[1],head)
 	else:
 		return 
 
