@@ -9,7 +9,7 @@ import calendar
 import pandas as pd
 from datetime import date, datetime
 
-drop = ['contact_info.htm','photos.htm', 'pokes.htm', 'security.htm', 'timeline.htm', 'videos.htm']
+drop = ['contact_info.htm','ads.htm','apps.htm','photos.htm', 'pokes.htm', 'security.htm', 'timeline.htm', 'videos.htm']
 r = re.compile(".*htm")
 files = [f for f in filter(r.match, os.listdir(".")) if f not in drop]
 
@@ -136,7 +136,7 @@ def clean_friend(friend_string):
 	Adding current year to replace empty date year
 	output: list containing [Name, Date] as 2 string elements
 	'''
-	friend = string.split(re.sub('\)','',friend_string.text),' (')
+	friend = str.split(re.sub('\)','',friend_string.text),' (')
 	if re.search('[0-9]{4}',friend[1]) is None:
 		friend[1] = friend[1]+', '+str(date.today().year)
 	return friend
