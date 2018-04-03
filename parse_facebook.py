@@ -5,16 +5,21 @@ import xml.etree.ElementTree as ET
 #from bs4 import UnicodeDammit
 import csv
 import string
-import calendar
+import itertools
 import pandas as pd
+import folium
 from datetime import date, datetime
 
-drop = ['contact_info.htm','ads.htm','apps.htm','photos.htm', 'pokes.htm', 'security.htm', 'timeline.htm', 'videos.htm']
+drop = ['contact_info.htm','photos.htm', 'pokes.htm', 'timeline.htm', 'videos.htm']
 r = re.compile(".*htm")
 files = [f for f in filter(r.match, os.listdir(".")) if f not in drop]
 
 
-
+##  Ads.htm
+##  Apps.htm
+##
+##  map locations with folium
+##  https://georgetsilva.github.io/posts/mapping-points-with-folium/
 
 
 def extract_data_from_file(filename):
@@ -160,8 +165,50 @@ def clean_friends(friends_elem, headers):
 			dat.append(friend_row)
 	return dat
 
-def clean_security(security_list):
-	return security_string
+def clean_ads(ads_elem, headers):
+	'''
+	input: Ads ET Element
+	output: data elements as a list
+	'''
+	ad = [i for i in ads_elem.itertext()]
+
+	split = ad.index('Advertisers with your contact info')
+	cc = ad[split+1:]
+	ad = ad[2:split]
+
+	dat = [{headers[0]:i,headers[1]:j} for (i,j) in itertools.zip_longest(ad,cc)]
+#	dat.append({headers[1]:i} for i in ad[split+1:])
+
+	return dat
+
+def clean_apps(apps_elem, headers):
+	'''
+	input: Apps ET Element
+	output: data elements as a list
+	'''
+	dat = []
+	apps = [i for i in apps_elem.itertext()][2:]
+	dat = [{headers[0]:i} for i in apps]
+
+	return dat
+
+def clean_security(security_list, headers):
+	'''
+	All I want is the location data out of this.
+	There is a bunch of other stuff, ip's and logon/logoff times, but I don't think that I learn much about me from logon logoff stuff.
+	'''
+	dat = []
+
+	text = [i for i in security_list.itertext()]
+	location = [i for i in text if re.search(re.compile('Estimated location inferred from IP'),i)]
+	start = text.index('Logins and Logouts')
+	end = text.index('Login Protection Data')
+	logs = text[start:end]
+	print(location)
+	print('\n\n\n')
+	print(logs)
+
+	return dat
 
 def clean_data(li, file, head):
 	'''
@@ -174,10 +221,12 @@ def clean_data(li, file, head):
 		return clean_friends(li[1], head)
 	if file=='messages.htm':
 		return clean_messages(li[1], head)
-	# if file=='ads.htm':
-	# 	return clean_ads(li[1], head)
-	# if file=='apps.htm':
-	# 	return clean_apps(li[1],head)
+	if file=='ads.htm':
+		return clean_ads(li[1], head)
+	if file=='apps.htm':
+		return clean_apps(li[1],head)
+	if file=='security.htm':
+		return clean_security(li[1], head)
 	else:
 		return 
 
@@ -194,7 +243,7 @@ for file in files:
 
 	#Headers dictionary
 	heads = {"events.htm":["Event Name","Location","Start Datetime","End Datetime","Attendance"], "ads.htm":["Ads Topics","Creeper Companies"],
-			"friends.htm":["Name","Date","Status"], "messages.htm":["Name","Datetime Sent","Message"], "security.htm":[]}
+			"friends.htm":["Name","Date","Status"], "messages.htm":["Name","Datetime Sent","Message"],"apps.htm":["Applications"], "security.htm":["Lat","Long"]}
 
 
 	#Data
