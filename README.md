@@ -33,6 +33,6 @@ I want to put out some plots that will show what I have done on facebook. Maybe 
 ### Research Questions
 * Have I ever quit facebook?
 * Has my activity changed over time?
-* suggest more questions
+* [suggest more questions](https://www.linkedin.com/in/phebepolk/)
 
 
