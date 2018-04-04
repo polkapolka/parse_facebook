@@ -38,28 +38,6 @@ def is_date(date_string):
 	return result
 
 
-def align_messages(mlist):
-	'''
-	I am certain there is an easier way to do this, but I am trying to line the dates all up in the right spots for the parsing to be correct.
-	'''
-	inds = [i for (i,j) in enumerate(mlist) if is_date(j)==True]
-	d_prev = inds.pop(0)
-	d = inds.pop(0)
-	while inds:
-		if d-d_prev==3:
-			d_prev = d
-			d = inds.pop(0)
-		if d-d_prev==2:
-			mlist.insert(d_prev+1,'')
-			inds = [i for (i,j) in enumerate(mlist) if is_date(j)==True and i >d_prev]
-			d = inds.pop(0)
-		if d-d_prev==1:
-			mlist.insert(d_prev+1,'')
-			mlist.insert(d_prev+1,'')
-			inds = [i for (i,j) in enumerate(mlist) if is_date(j)==True and i >d_prev]
-			d = inds.pop(0)
-	return mlist
-
 
 
 
@@ -74,18 +52,21 @@ def clean_messages(messages_elem, headers):
 		mroot = mtree.getroot()
 		mtext = [i for i in mroot[1][3].itertext() if 'Download file:' not in i]
 
-		if is_date(mtext[2]): #If date, then process nameless messages
-			for m in range(2,len(mtext),2):
-					message_row =  dict(zip(headers[1:], mtext[m:m+2] # Sent Date,Message
-										))
-					dat.append(message_row)
-		else: #If not date, assume name and process named message
-			if any([is_date(i)==False for i in mtext[3::3]]):  #the problem is here if there is one
-				mtext = align_messages(mtext)
-			for m in range(2,len(mtext),3):
-				message_row =  dict(zip(headers, mtext[m:m+3] # Name, Sent Date,Message
-									))
-				dat.append(message_row)
+
+		participants = [messages_elem[0].text] + [i.strip() for i in re.sub('Participants:','',mtext[1]).split(',')]
+
+		message = dict(zip(headers,['','','']))		
+		for m in range(2,len(mtext)):
+			if mtext[m] in participants:
+				message[headers[0]]=mtext[m]
+				next
+			elif is_date(mtext[m]):
+				message[headers[1]]=mtext[m]
+				next
+			else:
+				message[headers[2]]=mtext[m]
+				dat.append(message)
+				message = dict(zip(headers,['','','']))
 	return dat
 
 def clean_event(event_elem):
@@ -192,21 +173,43 @@ def clean_apps(apps_elem, headers):
 
 	return dat
 
-def clean_security(security_list, headers):
+def merge_two_dicts(x, y):
+    z = x.copy()   # start with x's keys and values
+    if y is not None:
+	    z.update(y)    # modifies z with y's keys and values & returns None
+    return z
+
+
+def clean_security(security_elem, headers):
 	'''
-	All I want is the location data out of this.
-	There is a bunch of other stuff, ip's and logon/logoff times, but I don't think that I learn much about me from logon logoff stuff.
+	input: Security ET element
+	note: ignoring cookies and ip addresses for now, should really be two separate csvs because first two columns and last two colu
+	outpu: logins, logoffs, lat, long as a list
 	'''
 	dat = []
 
-	text = [i for i in security_list.itertext()]
-	location = [i for i in text if re.search(re.compile('Estimated location inferred from IP'),i)]
+	text = [i for i in security_elem.itertext()]
+	location = [re.sub('Estimated location inferred from IP','',i) for i in text if re.search(re.compile('Estimated location inferred from IP'),i)]
+	location = [dict(zip(headers[2:4],l.split(', '))) for l in location]
 	start = text.index('Logins and Logouts')
 	end = text.index('Login Protection Data')
-	logs = text[start:end]
-	print(location)
-	print('\n\n\n')
-	print(logs)
+
+
+	logs = text[start+1:end]
+	logs = [l for l in logs if re.search(re.compile('Log Out|Login'),l)]
+
+	log = dict(zip(headers[0:2],['','']))
+	for l in range(len(logs)):
+		if re.match('Login',logs[l]) is not None:
+			log[headers[0]]=re.sub('Login ','',logs[l]).strip()
+			dat.append(log)
+			log = dict(zip(headers[0:2],['','']))
+			next
+		elif re.match('Log Out',logs[l]) is not None:
+			log[headers[1]]=re.sub('Log Out ','',logs[l]).strip()
+			next
+
+	dat = [merge_two_dicts(i,j) for (i,j) in itertools.zip_longest(dat,location)]
 
 	return dat
 
@@ -217,15 +220,15 @@ def clean_data(li, file, head):
 	'''
 	if file=='events.htm':
 		return clean_events(li[1], head)
-	if file=='friends.htm':
+	elif file=='friends.htm':
 		return clean_friends(li[1], head)
-	if file=='messages.htm':
+	elif file=='messages.htm':
 		return clean_messages(li[1], head)
-	if file=='ads.htm':
+	elif file=='ads.htm':
 		return clean_ads(li[1], head)
-	if file=='apps.htm':
+	elif file=='apps.htm':
 		return clean_apps(li[1],head)
-	if file=='security.htm':
+	elif file=='security.htm':
 		return clean_security(li[1], head)
 	else:
 		return 
@@ -243,7 +246,8 @@ for file in files:
 
 	#Headers dictionary
 	heads = {"events.htm":["Event Name","Location","Start Datetime","End Datetime","Attendance"], "ads.htm":["Ads Topics","Creeper Companies"],
-			"friends.htm":["Name","Date","Status"], "messages.htm":["Name","Datetime Sent","Message"],"apps.htm":["Applications"], "security.htm":["Lat","Long"]}
+			"friends.htm":["Name","Date","Status"], "messages.htm":["Name","Datetime Sent","Message"],
+			"apps.htm":["Applications"], "security.htm":["Login","Log Out","Lat","Long"]}
 
 
 	#Data
@@ -254,5 +258,7 @@ for file in files:
 	#Write the data to a file
 	newfile = re.sub('htm','csv',file)
 	pd.DataFrame(data).to_csv(newfile, index=False, encoding='utf-8')
+
+
 
 
