@@ -12,7 +12,8 @@ Currently running Python 2.7. Probably not compatible with Python 3.3, I haven't
 	* Default modules in python
 * pandas
 	* [Installation Instructions here](https://pandas.pydata.org/pandas-docs/stable/install.html)
-
+* folium
+	* [Installation Instructions here](http://folium.readthedocs.io/en/latest/installing.html#installation)
 
 ## Get Your Facebook Data
 Sure, there is the api, and that is great if you are building a facebook app or a bot or something.  But if you are just stand alone asking "What about me?" the link to get your facebook data is here.

@@ -15,9 +15,7 @@ r = re.compile(".*htm")
 files = [f for f in filter(r.match, os.listdir(".")) if f not in drop]
 
 
-##  Ads.htm
-##  Apps.htm
-##
+
 ##  map locations with folium
 ##  https://georgetsilva.github.io/posts/mapping-points-with-folium/
 
@@ -183,8 +181,8 @@ def merge_two_dicts(x, y):
 def clean_security(security_elem, headers):
 	'''
 	input: Security ET element
-	note: ignoring cookies and ip addresses for now, should really be two separate csvs because first two columns and last two colu
-	outpu: logins, logoffs, lat, long as a list
+	note: ignoring cookies and ip addresses for now
+	output: logins, logoffs, lat, long as a list
 	'''
 	dat = []
 
@@ -194,6 +192,10 @@ def clean_security(security_elem, headers):
 	start = text.index('Logins and Logouts')
 	end = text.index('Login Protection Data')
 
+	map = folium.Map(location=[float(location[0]['Lat']), float(location[0]['Long'])], zoom_start=12)
+	for l in location:
+		folium.Marker([float(l['Lat']),float(l['Long'])],popup='hi').add_to(map)
+	map.save('locations.html')
 
 	logs = text[start+1:end]
 	logs = [l for l in logs if re.search(re.compile('Log Out|Login'),l)]
