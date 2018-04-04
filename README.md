@@ -6,7 +6,7 @@ I am sure this isn't even an original idea and someone else has done it and done
 
 ## Setup and Requirements
 
-Currently running Python 2.7. Probably not compatible with Python 3.3, I haven't tried it.
+Currently running Python 3.4.  Not compatible with Python 2.7. 
 
 * xml.etree.ElementTree, re, string, os, datetime
 	* Default modules in python
